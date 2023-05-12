@@ -1,0 +1,25 @@
+# = NAME
+# Dockerfile-cpp  - build jj:[JJ_VER]-cpp
+#
+# = SYNOPSIS
+# docker build -t jj:0.0.1-cpp -f sample/Dockerfile-cpp .
+#
+# = DESCRIPTION
+# build jj:[JJ_VER]-cpp, which is an intermediate image to provide g++
+# compile environment.
+
+FROM debian:bullseye-20230227-slim
+MAINTAINER ido-gh@wtech.jp
+
+# change to your name
+ARG user="yariscross"
+ARG uid="1001"
+ARG gid="1001"
+
+RUN apt-get update && \
+    apt-get install -y g++ \
+        automake autoconf libtool-bin make
+
+# build dev-env
+# ruby  for bgen
+RUN apt-get install -y sudo ruby

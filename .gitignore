@@ -1,0 +1,33 @@
+*.b
+*.lo
+*.o
+a.out
+Makefile.in
+
+# autotools related
+/.libs/
+/aclocal.m4
+/autom4te.cache/
+/AUTHORS
+/compile
+/config.*
+/configure
+/ChangeLog
+/depcomp
+/doc/
+/INSTALL
+/install-sh
+/libjj.la
+/libtool
+/ltmain.sh
+/m4/
+/Makefile
+/missing
+/NEWS
+/README
+/src/.deps/
+/src/.dirstamp
+/stamp-h1
+
+# doxygen output
+/html/

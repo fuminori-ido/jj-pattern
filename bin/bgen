@@ -1,0 +1,304 @@
+#! /usr/bin/env ruby
+#
+# = NAME
+# bgen  - generates part-B from part-A
+#
+# = SYNOPSIS
+# bgen [-l library_file] application_src ...
+#
+# = DESCRIPTION
+# generates part-B(embeded information in class) from part-A (pattern
+# declaration) in C++ source files(*.cpp, *.h).
+# If there is the following pattern definition in the library_file:
+#
+#   Aggregate (Id, Parent, Child);
+#   Hash      (Id, Holder, Element);
+#
+# and there are the following pattern declarations(usage) in
+# application_src between classes:
+#
+#   Aggregate(depts,  Company,    Department);
+#   Aggregate(byDept, Department, Employee);
+#   Aggregate(byRev,  Company,    Project);
+#   Aggregate(byDate, Company,    Project);
+#   Aggregate(byProj, Project,    Employee);
+#   Hash     (config, App,        String);
+#
+# then, this bgen generates the following part-B:
+#
+# (TODO)
+#
+# bgen's algorithm is simple as follows:
+#
+# 1. build data structure on memory from library_file and application_src
+#    as follows:
+#
+#       @lib:
+#         'Aggregate' -> Line('Aggregate', Id, Parent, Child)
+#         'Hash'      -> Line('Hash',      Id, ...)
+#
+#       @declarations:
+#         Line('Aggregate', 'depts', 'Company',   'Department')
+#         Line('Aggregate', 'byDept','Department','Employee')
+#         ...
+#
+# 1. then, make linkage from _decs elements to lib elements
+# 1. finally, generates Part-B based on the linkages.   //
+#
+# This version of bgen is written in ruby because of simplicity.
+#
+# = FILES
+# lib.bg:: library file
+#
+# = SEE ALSO
+# https://www.amazon.co.jp/dp/0201528266  - original idea of bgen
+
+BGEN_LIB_PATH = File.dirname(__FILE__) + '/lib.bg'
+
+# build pattern definition or declaration from one line string
+#
+# From the input like:
+#
+#   "Pattern(id, A, B, ...)"
+#
+# build the followings:
+#   @pattern  = 'Pattern'
+#   @id       = 'id'
+#   @args     = %w(A B)
+class Line
+  class SyntaxError < StandardError; end
+
+  attr_accessor :pattern, :id, :args
+
+  def initialize(str)
+    match_data = /^\s*(\S+)\s*\(\s*(\S+)\s*,([^)]*)\)/.match(str)
+    if match_data && match_data.captures.size >= 3
+      @pattern  = match_data.captures[0]
+      @id       = match_data.captures[1]
+      @args     = match_data.captures[2].split(',').map{|s| arg(s.strip)}
+    else
+      raise SyntaxError
+    end
+  end
+
+  # 'arg' (Line argment) is just string.
+  def arg(str)
+    str
+  end
+
+  def to_s
+    "%s(%s, %s)" % [@pattern, @id, @args.join(', ')]
+  end
+end
+
+class Token
+  attr_accessor :token, :match
+
+  def initialize(str)
+    @token  = str.dup
+    @match  = nil
+  end
+
+  def last_element
+    @match.split('::').last
+  end
+end
+
+class Declaration < Line
+  # 'arg' (Declaration argment) is token which points to Line 'arg'.
+  def arg(str)
+    Token.new(str)
+  end
+end
+
+class Algorithm
+  attr_accessor :lib, :declarations
+
+  def initialize(lib_file)
+    @lib          = {}          # pattern-name -> its definition
+    @declarations = []
+    File.open(lib_file) do |f|
+      line_count  = 0
+      while buf = f.gets do
+        line_count += 1
+        begin
+          line = Line.new(buf)
+          @lib[line.pattern] = line
+        rescue Line::SyntaxError => e
+          STDERR.printf("%04d %s\n  syntax error\n", line_count, buf)
+        end
+      end
+    end
+  end
+
+  # build part-A objects
+  def build_a(file)
+    File.open(file) do |f|
+      while buf = f.gets do
+        # check if "pattern(...)" exists
+        match_data = /^\s*(\S+)\s*\(\s*(\S+)\s*,([^)]*)\)/.match(buf)
+        if match_data &&
+           match_data.captures.size >= 3 &&
+           @lib[match_data.captures[0]]
+
+          @declarations << Declaration.new(buf)
+        end
+      end
+    end
+  end
+
+  # print friend class of base.
+  #
+  # 'pattern class' is a friend of element class in the pattern.
+  # For example on jjAggregate, a pattern is defined as follows:
+  #
+  #   class A : INHERIT_A ...{};
+  #   class B : INHERIT_B ...{};
+  #   jjAggregate(one2many, A, B);
+  #
+  # then, one2many_class and one2many_iterator is a friend of A and B.
+=begin
+  def put_friends(dec)
+    # TODO
+  end
+=end
+
+  # match @declarations in @lib (pattern defnitions)
+  def match_lib
+    for dec in @declarations do
+      pattern_def = @lib[dec.pattern]
+
+      # if matched, link args on dec to pattern_def's args
+      if pattern_def
+        # check arguments consistency
+        if pattern_def.args.size != dec.args.size
+          STDERR.printf("ERROR: argments mismatch between the followings:\n  %s\n  %s\n",
+                        pattern_def.to_s,
+                        dec.to_s)
+          next
+        end
+
+        # link args on dec to pattern_def's args
+        pattern_def.args.each.with_index do |arg, i|
+          dec.args[i].match = arg
+        end
+      else
+        printf("%s missing in the library\n", dec.to_s)
+      end
+    end
+  end
+
+  class PartB
+    attr_accessor :name, :args
+
+    def initialize(name)
+      @name = name
+      @args = []
+    end
+  end
+
+  # intern PartB with 'name' key
+  def part_b(name)
+    if @part_b.nil?
+      @part_b = {}
+    end
+    if @part_b[name].nil?
+      @part_b[name] = PartB.new(name)
+    end
+    @part_b[name]
+  end
+
+  # generate part-B models
+  def gen_b
+    for dec in @declarations do
+      dec.args.each.with_index do |arg, i|
+       #part_b(dec.args[i].token).args << "#{dec.args[i].match} #{to_var(dec.args[i].match, dec.id)}"
+#require 'byebug'; byebug
+        part_b(dec.args[i].token).args << to_class(dec.args[i].match, dec.id)
+      end
+    end
+  end
+
+  # put "class id##_Parent", ...
+  def put_pattern_classes
+    for dec in @declarations do
+      for arg in dec.args do
+        printf("class #{dec.id}_#{arg.last_element} : public #{arg.match} {};\n")
+      end
+    end
+  end
+
+  # put part-B INHERIT...
+  def put_b
+    for k, v in @part_b do
+      printf("#define INHERIT_%s", k)
+      v.args.each.with_index do |arg, i|
+        printf(" %spublic %s",
+               i==0 ? '' : ', ',
+               arg);
+      end
+      puts(" ")
+    end
+  end
+
+=begin
+  # (jj::Pattern::Sub, authors) -> _jj_pattern_sub_authors
+  def to_var(name, id)
+    '_' +
+        underscore(name.gsub(/::/, '')) +
+        '_' + 
+        underscore(id)
+  end
+=end
+  # (jj::Pattern::Sub, authors) -> authors_Sub
+  def to_class(name, id)
+    id + '_' + name.split('::').last
+  end
+
+  # copied from rails; thanks!
+  def underscore(str)
+    return str unless /[A-Z-]|::/.match?(str)
+    word = str.to_s.gsub("::", "/")
+    word.gsub!(/([A-Z\d]+)([A-Z][a-z])/, '\1_\2')
+    word.gsub!(/([a-z\d])([A-Z])/, '\1_\2')
+    word.tr!("-", "_")
+    word.downcase!
+    word
+  end
+end
+
+def usage
+  STDERR.printf("USAGE: bgen [-l path] files...\n")
+  exit(2)
+end
+
+#-----------------------------------------------------------------------------
+# Main
+#-----------------------------------------------------------------------------
+  libfile = BGEN_LIB_PATH
+
+# scan option
+  i = 0
+  while i < ARGV.size do
+    break if ARGV[i] !~ /^-/
+
+    if ARGV[i] =~ /^-l$/
+      usage if i >= ARGV.size
+      libfile = ARGV[i+1]
+    else
+      STDERR.printf("unknown option %s\n", ARGV[i])
+      usage
+    end
+  end
+
+# process for each source files
+  a = Algorithm.new(libfile)
+  while i < ARGV.size do
+    a.build_a(ARGV[i])
+    i += 1
+  end
+  a.match_lib
+  a.gen_b
+  a.put_pattern_classes
+  puts()
+  a.put_b

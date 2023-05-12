@@ -1,0 +1,26 @@
+# = NAME
+# Dockerfile-lib  - build jj:[JJ_VER]-lib from jj:[JJ_VER]-cpp
+#
+# = SYNOPSIS
+# docker build -t jj:0.0.1-lib -f sample/Dockerfile-lib .
+#
+# = DESCRIPTION
+# build jj:[JJ_VER]-lib from jj:[JJ_VER]-cpp
+
+FROM jj:0.0.1-cpp
+
+# change to your name
+ARG user="yariscross"
+ARG uid="1001"
+ARG gid="1001"
+
+RUN addgroup --gid $gid $user && \
+    useradd --create-home --shell /bin/bash --uid $uid --gid $gid -G sudo $user && \
+    echo "$user ALL=(ALL:ALL) NOPASSWD: ALL" >/etc/sudoers.d/$user
+
+COPY . /tmp/work/
+WORKDIR /tmp/work
+
+# build $user env
+RUN ./bin/dev/boot.sh && \
+    make install
