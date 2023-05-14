@@ -1,73 +1,32 @@
 = OverView
 
-C++ Library "jj" consists from the following three sub categories:
+C++ Library "jj" consists from the following sub categories:
 
 * jj/errno -Error handling module
   Similar to Unix/C errno + some utilities.
-* jj/pattern -Pattern Library module
-  Provides several container patterns like Hash, List, Tree, Graph.
+* jj/pattern -Pattern Library module, a.k.a. 'Intrusive container'.
+  Provides several container patterns like List, and Tree.
+  (Hash and Graph have not yet been supported since v2.0.0).
   Jj/pattern has a unique feature compared to STL(Standard Template
   Library).
-* jj/cgi -CGI module for C++
-  usuful library to write CGI/FastCGI applications by C++
 
 Go to each link to read their details.
 
 = Install
 
-Sub Contents in this chapter is as follows:
+  $ ./configure --prefix=/opt/jj-#.#
+  $ make
+  $ make install
 
-1. Normal_installation
-2. Install_FastCGI_compliance_jjLibrary
-3. NOTE_on_installing_on_HP-UX11_+_ANSI_C++_environment
+= Document
 
-The detail is as follows:
-
-1. Normal installation
-   configure is now adapted since Ver1.5 so that the installation steps are:
-           ./configure --prefix=/opt/jj-#.#
-           make
-           make install
-   --prefix option in configure command is optional. You can set any other
-   installation directory (personally, I recommend /opt/jj).
-2. Install FastCGI compliance jjLibrary
-   It's very tedious work-around, but it works anyway in order to build
-   FastCGI compliant jjLibrary as follows:
-   1. before doing ./configure, substitute all of strings libjj to libjjf
-      in {R}/Makefile.in. NOTE: this substitution is not for only one
-      line!
-   2. do ./configure as usual.
-   3. add "-DFOR_FCGI" in the line of "CXXFLAGS =" in R/cgi/Makefile as
-      follows:
-        CXXFLAGS = -g -02 -DFOR_FCGI
-        Where, R means root directory of this source-package.
-        NOTE: If FCGI include path is not in standard path (like /usr/
-        include), then add "-Ifcgi_include_path" in CXXFLAGS here.
-   4. make sure to do "make clean" at R/cgi/
-   5. do "make; make install" at R/
-3. NOTE on installing on HP-UX11 + ANSI C++ environment
-   1. In order to install on HP-UX11 + ANSI C++(aC++) environment,
-      explicitly specify compiler path as follows:
-            $ CXX=/opt/aCC/bin/aCC ./configure options...
-   2. When compiling C++ source files by aC++ compiler(aCC), link must be
-      done by aCC, not by ld(1), especially when building shared library.
-      Unfortunately, libtool in this jjLibrary package doesn't recognize
-      aCC as linker so that the executable program may cause in trouble.
-      Work around is to manually modify 2 points in libtool as follows
-      (If you know more smart way, please let me know):
-      1. Change the following line at ~73 the line:
-          LD="/usr/bin/ld"
-         to:
-          LD="/opt/aCC/bin/aCC"
-      2. At ~184th line, delete the underlined part as follows:
-         archive_cmds="\$LD -b +h_\$soname +b \$install_libdir -o...
+Doxygen generated document is {here}[https://doc.mywiki.bar/jj-pattern/].
 
 = Environment
 
 Confirmed environment which jj is successfully installed is:
 
-| OS    | Version               | c++ |
-| Linux | Debian 11 (bullseye)  | g++ 10.2 |
+* Linux Debian 11 (bullseye)  g++ 10.2
 
 = For developer
 == Install libtool
@@ -98,11 +57,11 @@ so I build from source:
 
 = History
 
-Jj's roots is my personal study of "Taming_C++". I felt this pattern library
+Jj's roots is my personal study of "Taming C++". I felt this pattern library
 (and its concept) was very usuful so that I wrote the patterns from scratch.
-Other sub modules, errno and CGI, were added to jj during its version-up.
+Other sub module (errno) was added to jj during its version-up.
 The meaning of "jj" comes from the prefix of name in the library. In the book
-"Taming_C++", "ZZ" is chosen for name prefix. I get the same idea from that.
+"Taming C++", "ZZ" is chosen for name prefix. I get the same idea from that.
 
 = Feedback
 

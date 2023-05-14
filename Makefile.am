@@ -14,6 +14,7 @@ if HAVE_DOXYGEN
 
 doc:
 	cd src; doxygen
-
+	cd html; rsync -rltvz --delete ./* wtech.jp:/var/www/doc.mywiki.bar/jj-pattern/
+# NOTE: '-rlt' options above means -a without -p,-t,g,-o,-D to follow host stick bit 'chmod g+s'
 endif
 #----------------------------------------------------------------------------
