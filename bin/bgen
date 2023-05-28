@@ -12,7 +12,7 @@
 # If there is the following pattern definition in the library_file:
 #
 #   Aggregate (Id, Parent, Child);
-#   Hash      (Id, Holder, Element);
+#   Hash      (Id, Holder, Entry);
 #
 # and there are the following pattern declarations(usage) in
 # application_src between classes:

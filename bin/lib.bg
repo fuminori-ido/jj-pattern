@@ -1,5 +1,5 @@
 jjAggregate (Id, jj::Aggregate::Parent, jj::Aggregate::Child);
 jjCollect   (Id, jj::Collect::Parent,   jj::Collect::Child);
 jjDCollect  (Id, jj::DCollect::Parent,  jj::DCollect::Child);
-jjHash      (Id, jj::Hash::Holder,      jj::Hash::Element);
-jjGraph     (Id, jj::Graph::Node,       jj::Graph::Edget);
+jjHash      (Id, jj::Hash::Holder,      jj::Hash::Entry);
+jjGraph     (Id, jj::Graph::Node,       jj::Graph::Edge);

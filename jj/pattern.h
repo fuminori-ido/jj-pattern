@@ -62,17 +62,73 @@ Double linked Collect Interface
 TODO
 ----------------------------------------------------------------------*/
 
-/*----------------------------------------------------------------------
-jjHash Interface
 
-TODO
-----------------------------------------------------------------------*/
+class Hash {
+public:
+  class Entry;
+  class Holder {
+    friend class Hash;
+    friend class Iter;
+
+  public:
+
+    int       _size,        /* array size */
+              _num;         /* element number */
+    Entry**   _tail;
+
+    void      init(int size);
+
+    Holder();
+    Holder(int size);
+   ~Holder();
+  };
+
+  class Entry {
+    friend class Hash;
+    friend class Iter;
+
+    Entry*  _next;
+
+  public:
+    Entry(){_next=NULL;}
+  };
+
+private:
+  virtual int hash_base (Entry* e)              = 0;
+  virtual int cmp_base  (Entry* e1, Entry* e2)  = 0;
+  void        expand    (Holder* h, int new_size);
+
+public:
+
+
+  void        add       (Holder* h, Entry* e);
+  void        del       (Holder* h, Entry* e);
+  Entry*      sel       (Holder* h, Entry* e);
+  void        put_stat  (Holder* h);
+  void        put_stat2 (Holder* h);
+  int         num       (Holder* h);
+
+  class Iter {
+    Holder*   _h;
+    int       _ix;
+    Entry*    _beg,
+         *    _nxt;  /* status of list */
+  public:
+    void      start(Holder*);
+    Entry*    operator++();
+  };
+};
+
 
 /*----------------------------------------------------------------------
 jjGraph Interface
 
 TODO
 ----------------------------------------------------------------------*/
+
+/* convenient hash functions */
+int hash_str(const char *);
+
 }; // jj
 
 /*
@@ -97,5 +153,30 @@ public:                                     \
   };  \
 };    \
 id##_class id;
+
+#define jjHash(id, _Holder, _Entry) \
+class id##_class : public jj::Hash {  \
+  int         hash_base (Entry *); \
+  int         hash      (id##_##Entry *e) { return hash_base(e); } \
+  int         cmp_base  (Entry *, Entry *);  \
+  int         cmp       (id##_##Entry* e1, id##_##Entry* e2) { return cmp_base(e1, e2); }  \
+                                        \
+public: \
+  void        add(_Holder *h, _Entry *e)  { jj::Hash::add((id##_##Holder *)h, (id##_##Entry *)e); } \
+  void        del(_Holder *h, _Entry *e)  { jj::Hash::del((id##_##Holder *)h, (id##_##Entry *)e); } \
+  _Entry*     sel(_Holder *h, _Entry *key){ return static_cast<_Entry* >(static_cast<id##_##Entry* >(jj::Hash::sel((id##_##Holder *)h, (id##_##Entry *)key))); } \
+  void        put_stat(Holder* h)         { jj::Hash::put_stat((id##_##Holder *)h); }  \
+  void        put_stat2(Holder* h)        { jj::Hash::put_stat((id##_##Holder *)h); }  \
+  int         num(_Holder *h){ return jj::Hash::num((id##_##Holder *)h); }  \
+                                                                            \
+  class Iter : public jj::Hash::Iter {  \
+  public: \
+              Iter()            : jj::Hash::Iter() {} \
+              Iter(_Holder* h)  { jj::Hash::Iter::start((id##_##Holder *)h); } \
+    void      start(_Holder* h) { jj::Hash::Iter::start((id##_##Holder *)h); } \
+    Entry*    operator++()      { return static_cast<_Entry *>(static_cast<id##_##Entry *>(jj::Hash::Iter::operator++())); } \
+  };  \
+};
+//id##_class id;
 
 #endif /* jj/pattern.h */

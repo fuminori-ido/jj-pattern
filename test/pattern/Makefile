@@ -1,8 +1,8 @@
-TESTS = 00_downcast 00_multiple-inheritance 01_test 02_test
+TESTS = 00_downcast 00_multiple-inheritance 01_test 02_test hash_test
 
 BGEN      = ../../bin/bgen
 CXX       = libtool --mode=link g++
-INCLUDES  = -I/usr/src/googletest/googletest/include -I../../include
+INCLUDES  = -I/usr/src/googletest/googletest/include -I../../
 OBJS      = ../../libjj.la
 LIBS      = -lgtest -lgtest_main -pthread
 CXXFLAGS  = -g -o a.out -Wall $(INCLUDES)
@@ -30,5 +30,8 @@ install:
 	$(BGEN) $@.cpp >$@.b
 	$(CXX) $(CXXFLAGS) $@.cpp $(OBJS) $(LIBS) && ./a.out
 02_test:
+	$(BGEN) $@.cpp >$@.b
+	$(CXX) $(CXXFLAGS) $@.cpp $(OBJS) $(LIBS) && ./a.out
+hash_test:
 	$(BGEN) $@.cpp >$@.b
 	$(CXX) $(CXXFLAGS) $@.cpp $(OBJS) $(LIBS) && ./a.out
