@@ -68,6 +68,24 @@ TEST(Hash, hash){
   ASSERT_EQ(&atom_hello, atom_hash.sel(&app, &key));
 }
 
+TEST(Hash, many_entry_to_expand){
+// create objects for test
+  App   app;
+  char  buf[10];
+
+  for(int i=1; i <= 1000; i++){
+    sprintf(buf, "atom-%04d", i);
+    Atom* atom = new Atom(buf);
+    atom_hash.add(&app, atom);
+  }
+  //atom_hash.put_stat2(&app);
+
+  Atom  key = Atom("atom-0123");
+  Atom* hit = atom_hash.sel(&app, &key);
+  printf("hit = %p\n", hit);
+  ASSERT_STREQ("atom-0123", hit->str());
+}
+
 int main(int argc, char **argv){
   ::testing::InitGoogleTest(&argc, argv);
   return RUN_ALL_TESTS();
