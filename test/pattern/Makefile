@@ -34,4 +34,4 @@ install:
 	$(CXX) $(CXXFLAGS) $@.cpp $(OBJS) $(LIBS) && ./a.out
 hash_test:
 	$(BGEN) $@.cpp >$@.b
-	$(CXX) $(CXXFLAGS) $@.cpp $(OBJS) $(LIBS) && ./a.out
+	$(CXX) $(CXXFLAGS) $@.cpp $(OBJS) $(LIBS) && ./a.out $(GTEST_OPT)
