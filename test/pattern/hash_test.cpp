@@ -55,13 +55,13 @@ TEST(Hash, hash){
   App   app;
   Atom  atom_hello  = Atom("hello"),
         atom_world  = Atom("world"),
-        atom_hoo    = Atom("hoo"),
+        atom_foo    = Atom("foo"),
         atom_bar    = Atom("bar");
 
 // define relation
   atom_hash.add(&app, &atom_hello);
   atom_hash.add(&app, &atom_world);
-  atom_hash.add(&app, &atom_hoo);
+  atom_hash.add(&app, &atom_foo);
   atom_hash.add(&app, &atom_bar);
 
   Atom key = Atom("hello");
