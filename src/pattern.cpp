@@ -56,6 +56,8 @@ Relation between Childlen is implemented by `ring`, which is:
 
 Ring is a little better than linkd-list so that I chose this data structure.
 
+(The figure above omits ring and tail to show conceptual level relations only.)
+
 ### Example
 
 Here the example of Publisher - Books aggregation (1:n) is.
@@ -436,6 +438,211 @@ Collect::Child *Collect::Iter::operator++(){
 }
 
 /*!
+\class  DCollect
+\brief  define one-to-many relation between two classes.
+
+@dot
+digraph D {
+  parent
+  child_1 [label="child 1"]
+  child_2 [label="child 2"]
+  child_3 [label="..."      shape=plaintext]
+  child_N [label="child N"]
+
+  { rank=same parent }
+  { rank=same
+    child_1 -> child_2 -> child_3 -> child_N [dir="both"]
+    rankdir = LR
+  }
+
+  parent  -> child_N [ label="tail" ]
+  child_N -> child_1 [ dir="both" constraint=false ]
+}
+@enddot
+
+### Data structure
+
+Relation between Childlen is implemented by `ring`, which is:
+
+* linked-list between children.
+* last child's next is first.
+
+Ring is a little better than linkd-list so that I chose this data structure.
+
+### Example
+
+Here the example of Publisher - Books collection (1:n) is.
+
+1. define ex.cpp as:
+
+        #include <jj/pattern.h>
+        #include "ex.b"
+
+        class Publisher : INHERIT_Publisher {...};
+        class Book      : INHERIT_Book      {...};
+
+        jjDCollect (books, Publisher,  Book);
+
+2. generate "ex.b" which defines the relations between classes by:
+
+        $ bgen ex.cpp >ex.b
+
+3. link with jj/pattern library and run!:
+
+        $ g++ -Wall ex.cpp -ljj && a.out
+
+See [collect_test.cpp](../test/pattern/collect_test.cpp) source as actual sample.
+*/
+
+/*!
+\class  DCollect::Parent
+\brief  Parent base class for jj::DCollect pattern.
+*/
+
+/*!
+\class  DCollect::Child
+\brief  Child base class for jj::DCollect pattern.
+*/
+
+/*!
+\class  DCollect::Iter
+\brief  Iterator class for jj::DCollect pattern.
+*/
+
+DCollect::Parent::Parent(){
+  _tail = NULL;
+  _num  = 0;
+}
+
+/*! add child to parent.
+*/
+void DCollect::add(Parent* p, Child* c){
+  /* require */
+  if( p==NULL || c==NULL ) return;
+
+  /* check */
+  if( c->_prev != NULL || c->_next != NULL ) return;
+
+  if( p->_tail ){
+    c->_next        = p->_tail->_next;
+    c->_prev        = p->_tail;
+    p->_tail->_next->_prev = c;
+    p->_tail->_next = c;
+  }else{
+    c->_next    = c;
+    c->_prev    = c;
+  }
+  p->_tail = c;
+  p->_num++;
+}
+
+
+/*! get 1st child of parent */
+DCollect::Child *DCollect::child(Parent* p){
+  if( p==NULL ) return NULL;
+  Child* c = p->_tail;
+  if(c){
+    c = c->_next;
+    return c;
+  }else
+    return NULL;
+}
+
+/*! get last child of parent */
+DCollect::Child *DCollect::last(Parent* p){
+  if( p==NULL ) return NULL;
+  Child *c = p->_tail;
+  if(c){
+    return c;
+  }else
+    return NULL;
+}
+
+/*! get child next to the child */
+DCollect::Child *DCollect::next(DCollect::Child* c){
+   if( c == NULL ) return NULL;
+   return c->_next;
+}
+
+/*! get child previous to the child */
+DCollect::Child *DCollect::prev(DCollect::Child* c){
+   if( c == NULL ) return NULL;
+   return c->_prev;
+}
+
+/*! delete child from the collection */
+void DCollect::del(DCollect::Parent* parent, DCollect::Child* c){
+  /* require */
+  if( c==NULL ) return;
+
+  if( c->_next == c ){            // last element?
+    c->_next= c->_prev = parent->_tail = NULL;     // then emptify
+    parent->_num = 0;
+    return;
+  }
+  Child *ch, *next;
+  for(ch=parent->_tail; ch; ch=next){  //find 'ch' points to c
+    next = ch->_next;
+    if( next == c ) break;
+    if( next == parent->_tail ) next = NULL;
+  }
+  if(ch){
+    ch               = c->_prev;
+    ch->_next        = c->_next;
+    ch->_next->_prev = ch;
+    c->_next        = c->_prev = NULL;
+
+    if(parent->_tail == c) parent->_tail = ch;
+
+    parent->_num--;
+  }else
+    ::jj::raise(g_eh, collect_del_internal_error);
+}
+
+/*! get number of children */
+int DCollect::num(DCollect::Parent* p){
+  if( p==NULL ) return 0;
+  return p->_num;
+}
+
+/*! declare iterator */
+void DCollect::Iter::start(::jj::DCollect::Parent* p){
+  iffa(p, _last, p->_tail, NULL);
+  if( _last ){
+    iffa(p, _curr, _last->_next,          NULL);
+  }else
+    _curr = NULL;
+}
+
+/*!
+init iterator as [c, c2]
+*/
+void DCollect::Iter::start(::jj::DCollect::Child* c, ::jj::DCollect::Child* c2){
+  iffa(c,  _curr, c,  NULL);
+  iffa(c2, _last, c2, NULL);
+}
+
+/*! get child, then increment the iterator */
+DCollect::Child *DCollect::Iter::operator++(){
+  Child *result = _curr;
+  if( _curr == _last )
+    _curr = _last = NULL;
+  else
+    _curr = _curr->_next;
+  return result;
+}
+
+/*! get child, then decrement the iterator */
+DCollect::Child *DCollect::Iter::operator--(){
+  Child *result = _curr;
+  if( _curr == _last )
+    _curr = _last = NULL;
+  else
+    _curr = _curr->_prev;
+  return result;
+}
+
+/*!
 \class  Hash
 \brief  define holder-element relation with hash-search.
 
@@ -571,7 +778,7 @@ void Hash::add(Holder* h, Entry* e){
   expand(h, h->_size*hash_inc_magnitude);
   }
 
-/* _jjCollect::add() と同様 */
+/* _jjcollect::add() と同様 */
 #ifdef JJDEBUG
   printf("  Hash::add(%lx) ix is ...\n", h);
 #endif

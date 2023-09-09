@@ -2,7 +2,7 @@
 #include <string.h>
 #include "gtest/gtest.h"
 #include "jj/pattern.h"
-#include "collect_test.b" /* include Part-B */
+#include "dcollect_test.b" /* include Part-B */
 
 // define models
 class Book : INHERIT_Book {
@@ -19,9 +19,9 @@ public:
 };
 
 // define pattern between models
-jjCollect (books,       Publisher,  Book);
+jjDCollect (books,       Publisher,  Book);
 
-TEST(Simplest, single_collect){
+TEST(Simplest, dcollect){
 // create objects for test
   Publisher p1("P1");
   Book      oosc("1-123", "Object Oriented S/W Construction"),
@@ -41,6 +41,15 @@ TEST(Simplest, single_collect){
   b = ++i;
   ASSERT_STREQ("Introduction to the Theory of Programming Lanugages",  b->name);
   b = ++i;
+  ASSERT_EQ(NULL, b);
+
+// Print books in reverse order
+  i.start(&itpl, &oosc);
+  b = --i;
+  ASSERT_STREQ("Introduction to the Theory of Programming Lanugages",  b->name);
+  b = --i;
+  ASSERT_STREQ("Object Oriented S/W Construction",                     b->name);
+  b = --i;
   ASSERT_EQ(NULL, b);
 
   books.del(&p1, &itpl);
