@@ -258,6 +258,184 @@ Aggregate::Child *Aggregate::Iter::operator++(){
 }
 
 /*!
+\class  Collect
+\brief  define one-to-many relation between two classes.
+
+@dot
+digraph D {
+  parent
+  child_1 [label="child 1"]
+  child_2 [label="child 2"]
+  child_3 [label="..."      shape=plaintext]
+  child_N [label="child N"]
+
+  { rank=same parent }
+  { rank=same
+    child_1 -> child_2 -> child_3 -> child_N
+    rankdir = LR
+  }
+
+  parent  -> child_N [ label="tail" ]
+  child_N -> child_1 [ constraint=false ]
+}
+@enddot
+
+### Data structure
+
+Relation between Childlen is implemented by `ring`, which is:
+
+* linked-list between children.
+* last child's next is first.
+
+Ring is a little better than linkd-list so that I chose this data structure.
+
+### Example
+
+Here the example of Publisher - Books collection (1:n) is.
+
+1. define ex.cpp as:
+
+        #include <jj/pattern.h>
+        #include "ex.b"
+
+        class Publisher : INHERIT_Publisher {...};
+        class Book      : INHERIT_Book      {...};
+
+        jjCollect (books, Publisher,  Book);
+
+2. generate "ex.b" which defines the relations between classes by:
+
+        $ bgen ex.cpp >ex.b
+
+3. link with jj/pattern library and run!:
+
+        $ g++ -Wall ex.cpp -ljj && a.out
+
+See [collect_test.cpp](../test/pattern/collect_test.cpp) source as actual sample.
+*/
+
+/*!
+\class  Collect::Parent
+\brief  Parent base class for jj::Collect pattern.
+*/
+
+/*!
+\class  Collect::Child
+\brief  Child base class for jj::Collect pattern.
+*/
+
+/*!
+\class  Collect::Iter
+\brief  Iterator class for jj::Collect pattern.
+*/
+
+Collect::Parent::Parent(){
+  _tail = NULL;
+  _num  = 0;
+}
+
+/*! add child to parent.
+*/
+void Collect::add(Parent* p, Child* c){
+  /* require */
+  if( p==NULL || c==NULL ) return;
+
+  /* check */
+  if( c->_next != NULL ) return;
+
+  if( p->_tail ){
+    c->_next        = p->_tail->_next;
+    p->_tail->_next = c;
+  }else{
+    c->_next    = c;
+  }
+  p->_tail = c;
+  p->_num++;
+}
+
+
+/*! get 1st child of parent */
+Collect::Child *Collect::child(Parent* p){
+  if( p==NULL ) return NULL;
+  Child* c = p->_tail;
+  if(c){
+    c = c->_next;
+    return c;
+  }else
+    return NULL;
+}
+
+/*! get last child of parent */
+Collect::Child *Collect::last(Parent* p){
+  if( p==NULL ) return NULL;
+  Child *c = p->_tail;
+  if(c){
+    return c;
+  }else
+    return NULL;
+}
+
+/*! get child next to the child */
+Collect::Child *Collect::next(Collect::Child* c){
+   if( c == NULL ) return NULL;
+   return c->_next;
+}
+
+/*! delete child from the collection */
+void Collect::del(Collect::Parent* parent, Collect::Child* c){
+  /* require */
+  if( c==NULL ) return;
+
+  if( c->_next == c ){            // last element?
+    c->_next= parent->_tail = NULL;     // then emptify
+    parent->_num = 0;
+    return;
+  }
+  Child *p, *next;
+  for(p=parent->_tail; p; p=next){  //find 'p' points to s
+    next = p->_next;
+    if( next == c ) break;
+    if( next == parent->_tail ) next = NULL;
+  }
+  if(p){
+    p->_next = c->_next;
+
+    //set NULL for later add()
+    c->_next    = NULL;
+
+    if(parent->_tail == c) parent->_tail = p;
+
+    parent->_num--;
+  }else
+    ::jj::raise(g_eh, collect_del_internal_error);
+}
+
+/*! get number of children */
+int Collect::num(Collect::Parent* p){
+  if( p==NULL ) return 0;
+  return p->_num;
+}
+
+/*! declare iterator */
+void Collect::Iter::start(::jj::Collect::Parent* p){
+  iffa(p, _last, p->_tail, NULL);
+  if( _last ){
+    iffa(p, _curr, _last->_next,          NULL);
+  }else
+    _curr = NULL;
+}
+
+/*! get child, then increment the iterator */
+Collect::Child *Collect::Iter::operator++(){
+  Child *result = _curr;
+  if( _curr == _last )
+    _curr = _last = NULL;
+  else
+    _curr = _curr->_next;
+  return result;
+}
+
+/*!
 \class  Hash
 \brief  define holder-element relation with hash-search.
 

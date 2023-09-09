@@ -50,11 +50,49 @@ public:
 };
 
 
-/*----------------------------------------------------------------------
-Collect Interface
+class Collect {
+public:
+  class Parent;      //forward
+  class Iter;
 
-TODO
-----------------------------------------------------------------------*/
+  class Child {
+    friend class Collect;
+    friend class Collect::Iter;
+
+    Child*  _next;
+
+  public:
+    Child(){_next=NULL;}
+  };
+
+  class Parent {
+    friend class Collect;
+    friend class Collect::Iter;
+
+    Child*  _tail;
+    int     _num;
+
+  public:
+    Parent();
+  };
+
+  void    add   (Parent* p, Child* c);
+  Child*  child (Parent* p);
+  Child*  last  (Parent* p);
+  void    del   (Parent* p, Child*  c);
+  Child*  next  (Child*  c);
+  int     num   (Parent* p);
+
+  class Iter {
+    Child*  _curr;
+    Child*  _last;
+  public:
+            Iter        (){_curr = _last = NULL;}
+            Iter        (Parent* p){ start(p); }
+    void    start       (Parent* p);
+    Child*  operator++  ();
+  };
+};
 
 /*----------------------------------------------------------------------
 Double linked Collect Interface
@@ -150,6 +188,26 @@ public:                                     \
             Iter(_Parent* p) : jj::Aggregate::Iter((id##_##Parent *)p)  {}  \
     void    start(_Parent* p) { jj::Aggregate::Iter::start((id##_##Parent *)p); } \
     _Child* operator++()      { return static_cast<_Child* >(static_cast<id##_##Child*>(jj::Aggregate::Iter::operator++())); }      \
+  };  \
+};    \
+id##_class id;
+
+#define jjCollect(id, _Parent, _Child)      \
+class id##_class :  public jj::Collect {    \
+public:                                     \
+  void      add   (_Parent* p, _Child* c){ jj::Collect::add((id##_##Parent *)p, (id##_##Child *)c); }  \
+  _Child*   child (_Parent* p)  { return static_cast<_Child* >(static_cast<id##_##Child* >(jj::Collect::child((id##_##Parent *)p))); }  \
+  _Child*   last  (_Parent* p)  { return static_cast<_Child* >(static_cast<id##_##Child* >(jj::Collect::last((id##_##Parent *)p))); }   \
+  void      del   (_Parent* p, _Child* c){ jj::Collect::del((id##_##Parent *)p, (id##_##Child *)c); }  \
+  _Child*   next  (_Child* c)   { return static_cast<_Child* >(static_cast<id##_##Child* >(jj::Collect::next((id##_##Child *)c))); }    \
+  int       num   (_Parent* p)  { return jj::Collect::num((id##_##Parent *)p); }  \
+                                            \
+  class Iter : public jj::Collect::Iter { \
+  public:                                   \
+            Iter()           : jj::Collect::Iter()  {}  \
+            Iter(_Parent* p) : jj::Collect::Iter((id##_##Parent *)p)  {}  \
+    void    start(_Parent* p) { jj::Collect::Iter::start((id##_##Parent *)p); } \
+    _Child* operator++()      { return static_cast<_Child* >(static_cast<id##_##Child*>(jj::Collect::Iter::operator++())); }      \
   };  \
 };    \
 id##_class id;

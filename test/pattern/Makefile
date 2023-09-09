@@ -1,4 +1,5 @@
-TESTS = 00_downcast 00_multiple-inheritance 01_test 02_test hash_test
+TESTS = 00_downcast 00_multiple-inheritance 01_test 02_test \
+        collect_test hash_test
 
 BGEN      = ../../bin/bgen
 CXX       = libtool --mode=link g++
@@ -30,6 +31,9 @@ install:
 	$(BGEN) $@.cpp >$@.b
 	$(CXX) $(CXXFLAGS) $@.cpp $(OBJS) $(LIBS) && ./a.out
 02_test:
+	$(BGEN) $@.cpp >$@.b
+	$(CXX) $(CXXFLAGS) $@.cpp $(OBJS) $(LIBS) && ./a.out
+collect_test:
 	$(BGEN) $@.cpp >$@.b
 	$(CXX) $(CXXFLAGS) $@.cpp $(OBJS) $(LIBS) && ./a.out
 hash_test:
