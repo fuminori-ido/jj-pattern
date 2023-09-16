@@ -16,7 +16,7 @@ Go to each link to read their details.
 
   $ ./configure --prefix=/opt/jj-#.#
   $ make
-  $ make install
+  $ sudo make install
 
 = Document
 

@@ -232,7 +232,7 @@ public:                                     \
     _Child* operator++()      { return static_cast<_Child* >(static_cast<id##_##Child*>(jj::Aggregate::Iter::operator++())); }      \
   };  \
 };    \
-id##_class id;
+extern id##_class id;
 
 #define jjCollect(id, _Parent, _Child)      \
 class id##_class :  public jj::Collect {    \
@@ -252,7 +252,7 @@ public:                                     \
     _Child* operator++()      { return static_cast<_Child* >(static_cast<id##_##Child*>(jj::Collect::Iter::operator++())); }      \
   };  \
 };    \
-id##_class id;
+extern id##_class id;
 
 #define jjDCollect(id, _Parent, _Child)     \
 class id##_class :  public jj::DCollect {   \
@@ -275,7 +275,7 @@ public:                                     \
     _Child* operator--()      { return static_cast<_Child* >(static_cast<id##_##Child*>(jj::DCollect::Iter::operator--())); }      \
   };  \
 };    \
-id##_class id;
+extern id##_class id;
 
 #define jjHash(id, _Holder, _Entry) \
 class id##_class : public jj::Hash {  \
@@ -299,7 +299,7 @@ public: \
     void      start(_Holder* h) { jj::Hash::Iter::start((id##_##Holder *)h); } \
     Entry*    operator++()      { return static_cast<_Entry *>(static_cast<id##_##Entry *>(jj::Hash::Iter::operator++())); } \
   };  \
-};
-//id##_class id;
+};    \
+extern id##_class id;
 
 #endif /* jj/pattern.h */

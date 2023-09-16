@@ -20,6 +20,7 @@ public:
 
 // define pattern between models
 jjDCollect (books,       Publisher,  Book);
+books_class books;
 
 TEST(Simplest, dcollect){
 // create objects for test

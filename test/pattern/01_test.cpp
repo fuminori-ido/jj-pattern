@@ -28,6 +28,7 @@ public:
 
 // define pattern between models
 jjAggregate (books,       Publisher,  Book);
+books_class books;
 
 TEST(Simplest, single_aggregate){
 // create objects for test

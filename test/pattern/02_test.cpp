@@ -21,6 +21,7 @@ public:
 
 // define pattern between models
 jjAggregate (tree, Node, Node);
+tree_class tree;
 
 void print_tree(int depth, Node *node){
   for(int i=0; i<depth; i++){
