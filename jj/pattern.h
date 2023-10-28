@@ -16,7 +16,7 @@ public:
     Parent* _parent;
 
   public:
-    Child(){_next=NULL; _parent=NULL;}
+    Child();
   };
 
   class Parent {
@@ -42,7 +42,7 @@ public:
     Child*  _curr;
     Child*  _last;
   public:
-            Iter        (){_curr = _last = NULL;}
+            Iter        ();
             Iter        (Parent* p){ start(p); }
     void    start       (Parent* p);
     Child*  operator++  ();
@@ -87,7 +87,7 @@ public:
     Child*  _curr;
     Child*  _last;
   public:
-            Iter        (){_curr = _last = NULL;}
+            Iter        ();
             Iter        (Parent* p){ start(p); }
     void    start       (Parent* p);
     Child*  operator++  ();
@@ -107,7 +107,7 @@ public:
     Child*  _prev;
 
   public:
-    Child(){_next=_prev=NULL;}
+    Child();
   };
 
   class Parent {
@@ -133,7 +133,7 @@ public:
     Child*  _curr;
     Child*  _last;
   public:
-            Iter        (){_curr = _last = NULL;}
+            Iter        ();
             Iter        (Parent* p){ start(p); }
     void    start       (Parent* p);
     void    start       (Child*  c, Child* c2);

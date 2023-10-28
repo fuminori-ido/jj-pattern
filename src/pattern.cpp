@@ -129,21 +129,29 @@ See [02_test.cpp](../test/pattern/02_test.cpp) source as actual sample.
 \class  Aggregate::Parent
 \brief  Parent base class for jj::Aggregate pattern.
 */
+Aggregate::Parent::Parent(){
+  _tail = NULL;
+  _num  = 0;
+}
 
 /*!
 \class  Aggregate::Child
 \brief  Child base class for jj::Aggregate pattern.
 */
+Aggregate::Child::Child(){
+  _next   = NULL;
+  _parent = NULL;
+}
 
 /*!
 \class  Aggregate::Iter
 \brief  Iterator class for jj::Aggregate pattern.
 */
-
-Aggregate::Parent::Parent(){
-  _tail = NULL;
-  _num  = 0;
+Aggregate::Iter::Iter(){
+  _curr   = NULL;
+  _last   = NULL;
 }
+
 
 /*! add child to parent.
 */
@@ -336,6 +344,11 @@ Collect::Parent::Parent(){
   _num  = 0;
 }
 
+Collect::Iter::Iter(){
+  _curr   = NULL;
+  _last   = NULL;
+}
+
 /*! add child to parent.
 */
 void Collect::add(Parent* p, Child* c){
@@ -498,20 +511,28 @@ See [collect_test.cpp](../test/pattern/collect_test.cpp) source as actual sample
 \class  DCollect::Parent
 \brief  Parent base class for jj::DCollect pattern.
 */
+DCollect::Parent::Parent(){
+  _tail = NULL;
+  _num  = 0;
+}
+
 
 /*!
 \class  DCollect::Child
 \brief  Child base class for jj::DCollect pattern.
 */
+DCollect::Child::Child(){
+  _next = NULL;
+  _prev = NULL;
+}
 
 /*!
 \class  DCollect::Iter
 \brief  Iterator class for jj::DCollect pattern.
 */
-
-DCollect::Parent::Parent(){
-  _tail = NULL;
-  _num  = 0;
+DCollect::Iter::Iter(){
+  _curr = NULL;
+  _last = NULL;
 }
 
 /*! add child to parent.
@@ -725,14 +746,14 @@ hash_base() and add().
 */
 void Hash::expand(Holder *h, int new_size){
 #ifdef JJDEBUG
-  printf("Hash::expand(%d) this=%lx\n", new_size, this);
+  if( h==NULL ){
+    fprintf(stderr, "Hash::expand(?   -> %3d) this=%p\n", new_size, this);
+  }else{
+    fprintf(stderr, "Hash::expand(%3d -> %3d) this=%p\n", h->_size, new_size, this);
+  }
 #endif
 /* require */
   if( h==NULL ) return;
-
-#ifdef JJDEBUG
-printf("Hash::expand(%d -> %d)\n", h->_size, new_size);
-#endif
 
   /*
   Implementation Note: create new_holder by Iter & add() and replace
@@ -745,7 +766,7 @@ printf("Hash::expand(%d -> %d)\n", h->_size, new_size);
   i.start(h);
   while( (e2 = (Entry *)++i) ){
 #ifdef JJDEBUG
-    printf("Hash::expand() new_holder._size=%d\n", new_holder._size);
+    fprintf(stderr, "Hash::expand() new_holder._size=%d\n", new_holder._size);
 #endif
     e2->_next = NULL;       /* necessary for add() */
     this->add(&new_holder, e2);
@@ -757,7 +778,7 @@ printf("Hash::expand(%d -> %d)\n", h->_size, new_size);
   h->_tail    = new_holder._tail;
   new_holder._tail = NULL;    /* to avoid free() at destructor */
 #ifdef JJDEBUG
-  printf("Hash::expand() end\n");
+  fprintf(stderr, "Hash::expand() end\n");
 #endif
 }
 
@@ -778,13 +799,14 @@ void Hash::add(Holder* h, Entry* e){
   expand(h, h->_size*hash_inc_magnitude);
   }
 
-/* _jjcollect::add() と同様 */
 #ifdef JJDEBUG
-  printf("  Hash::add(%lx) ix is ...\n", h);
+  fprintf(stderr, "  Hash::add(%p) ix is ...\n", h);
+  fprintf(stderr, "    hash_base(e) = %d\n", hash_base(e));
+  fprintf(stderr, "    h->_size     = %d\n", h->_size);
 #endif
   int ix = hash_base(e) % h->_size;
 #ifdef JJDEBUG
-printf("  Hash::add(%lx) ix=%d\n", h, ix);
+fprintf(stderr, "  Hash::add(%p) ix=%d\n", h, ix);
 #endif
   if( h->_tail[ix] ){
     e->_next              = h->_tail[ix]->_next;
@@ -795,7 +817,7 @@ printf("  Hash::add(%lx) ix=%d\n", h, ix);
   h->_tail[ix] = e;
   h->_num++;
 #ifdef JJDEBUG
-  printf("Hash::add(%lx) end\n", h);
+  fprintf(stderr, "Hash::add(%p) end\n", h);
 #endif
 }
 
@@ -834,7 +856,7 @@ jj::Hash::Entry* Hash::sel(Holder* h, Entry* key){
 
   int     ix  = hash_base(key) % h->_size;
 #ifdef JJDEBUG
-printf("Hash::sel() 2 ix=%d\n", ix);
+fprintf(stderr, "== Hash::sel() 2 ix=%d\n", ix);
 #endif
   Entry*  beg = h->_tail[ix],
        *  nxt,
@@ -949,15 +971,14 @@ jj::Hash::Entry* Hash::Iter::operator++(){
   return e;
 }
 
-
 /* convenient hash functions */
 int hash_str(const char *s){
   int hash = 0;
 
   for(; *s; s++){
-    hash = hash*131 + int((unsigned char)*s);
+    hash = ((hash<<7) + hash + int((unsigned char)*s)) & 0x7fffffff;
   }
-  return abs(hash);   /* to avoid minus value */
+  return hash;
 }
 
 }; // jj

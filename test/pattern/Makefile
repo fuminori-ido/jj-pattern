@@ -1,4 +1,4 @@
-TESTS = 00_downcast 00_multiple-inheritance 01_test 02_test \
+TESTS = 00_abs 00_downcast 00_multiple-inheritance 01_test 02_test \
         collect_test dcollect_test hash_test
 
 BGEN      = ../../bin/bgen
@@ -23,6 +23,8 @@ clean:
 install:
 	# do nothing
 
+00_abs:
+	$(CXX) $(CXXFLAGS) $@.cpp $(OBJS) $(LIBS) && ./a.out
 00_downcast:
 	$(CXX) $(CXXFLAGS) $@.cpp $(OBJS) $(LIBS) && ./a.out
 00_multiple-inheritance:
