@@ -117,6 +117,7 @@ class Algorithm
   def initialize(lib_file)
     @lib          = {}          # pattern-name -> its definition
     @declarations = []
+    @files        = []
     File.open(lib_file) do |f|
       line_count  = 0
       while buf = f.gets do
@@ -133,6 +134,7 @@ class Algorithm
 
   # build part-A objects
   def build_a(file)
+    @files << file
     File.open(file) do |f|
       while buf = f.gets do
         # check if "pattern(...)" exists
@@ -188,6 +190,17 @@ class Algorithm
     end
   end
 
+  def gen
+    put_ifndef
+    gen_b
+    put_pattern_classes
+    puts()
+    put_b
+    puts("\n#endif\n")
+  end
+
+  private
+
   class PartB
     attr_accessor :name, :args
 
@@ -195,6 +208,19 @@ class Algorithm
       @name = name
       @args = []
     end
+  end
+
+  def guard_name
+    'jj_' + @files.map{|f| File.basename(f, ".*")}.join('_') + '_h'
+  end
+
+  # same as '#pragma once'
+  def put_ifndef
+    g_name = guard_name
+    printf("#ifndef %s\n" +
+           "#define %s\n\n",
+           g_name,
+           g_name)
   end
 
   # intern PartB with 'name' key
@@ -212,8 +238,6 @@ class Algorithm
   def gen_b
     for dec in @declarations do
       dec.args.each.with_index do |arg, i|
-       #part_b(dec.args[i].token).args << "#{dec.args[i].match} #{to_var(dec.args[i].match, dec.id)}"
-#require 'byebug'; byebug
         part_b(dec.args[i].token).args << to_class(dec.args[i].match, dec.id)
       end
     end
@@ -298,7 +322,4 @@ end
     i += 1
   end
   a.match_lib
-  a.gen_b
-  a.put_pattern_classes
-  puts()
-  a.put_b
+  a.gen
