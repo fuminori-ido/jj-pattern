@@ -1,7 +1,7 @@
 AC_INIT([jj], [0.1])
-AM_INIT_AUTOMAKE([1.16 subdir-objects])
+AM_INIT_AUTOMAKE([foreign subdir-objects])
 AC_PROG_CXX
-AC_PROG_LIBTOOL
+LT_INIT
 AC_CHECK_PROGS([DOXYGEN], [doxygen])
 AC_CHECK_PROGS([DOT], [dot])
 AM_CONDITIONAL([HAVE_DOXYGEN], [test -n "$DOXYGEN"])
