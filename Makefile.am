@@ -1,4 +1,4 @@
-.PHONY: doc
+.PHONY: doc doc_push
 
 SUBDIRS           = . test/pattern
 bin_SCRIPTS       = bin/bgen bin/lib.bg
@@ -15,7 +15,8 @@ if HAVE_DOXYGEN
 doc:
 	cd src; doxygen
 doc_push:
-	cd html; rsync -rltvz --delete ./* wtech.jp:/var/www/doc.mywiki.bar/jj-pattern/
+	make doc
+	cd html && rsync -rltvz --delete ./* wtech.jp:/var/www/doc.wells.blue/jj-pattern/
 # NOTE: '-rlt' options above means -a without -p,-t,g,-o,-D to follow host stick bit 'chmod g+s'
 endif
 #----------------------------------------------------------------------------

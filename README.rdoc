@@ -10,8 +10,6 @@ C++ Library "jj" consists from the following sub categories:
   jj/pattern has a unique feature compared to STL(Standard Template
   Library).
 
-Go to each link to read their details.
-
 = Install
 == Install libtool
 
@@ -48,7 +46,7 @@ so I build from source:
 
 = Document
 
-Doxygen generated document is {here}[https://doc.mywiki.bar/jj-pattern/].
+Doxygen generated document is {here}[https://doc.wells.blue/jj-pattern/].
 
 = Environment
 
