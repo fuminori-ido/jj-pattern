@@ -44,6 +44,12 @@ so I build from source:
   $ make
   $ sudo make install
 
+=== test
+
+  $ make check
+  ...
+  [  PASSED  ] N tests.
+
 = Document
 
 Doxygen generated document is {here}[https://doc.wells.blue/jj-pattern/].
